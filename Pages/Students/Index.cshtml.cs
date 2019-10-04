@@ -19,11 +19,22 @@ namespace ContosoUniversity.Pages.Students
             _context = context;
         }
 
-        public IList<Student> Student { get;set; }
+        public string CurrentFilter { get; set; }
+        public IList<Student> Students { get;set; }
 
-        public async Task OnGetAsync()
+        public async Task OnGetAsync(string searchString)
         {
-            Student = await _context.Students.ToListAsync();
+            CurrentFilter = searchString; 
+
+            IQueryable<Student> studentsIQ = from s in _context.Students
+                                             select s;
+
+            if (!String.IsNullOrEmpty(searchString) && searchString != "*")
+            {
+                studentsIQ = studentsIQ.Where(s => s.LastName.Contains(searchString)
+                                       || s.FirstMidName.Contains(searchString));
+            }
+            Students = await studentsIQ.AsNoTracking().ToListAsync();
         }
     }
 }
